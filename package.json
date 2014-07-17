@@ -1,0 +1,33 @@
+{
+  "name": "levenshtein-transformation",
+  "version": "0.0.0",
+  "description": "Transform one string into another using the operations in the Levenshtein edit distance computation.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/djechlin/levenshtein-transformation.git"
+  },
+  "keywords": [
+    "levenshtein",
+    "distance",
+    "edit",
+    "distance",
+    "string",
+    "string",
+    "transform",
+    "dynamic",
+    "programming",
+    "regex",
+    "regex",
+    "generation"
+  ],
+  "author": "Dan Echlin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/djechlin/levenshtein-transformation/issues"
+  },
+  "homepage": "https://github.com/djechlin/levenshtein-transformation"
+}
