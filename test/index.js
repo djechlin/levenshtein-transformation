@@ -29,10 +29,12 @@ describe("Levenshtein", function() {
 			assert.equal(dist("a", ""), 1);
 		});
 
-		it("should return the hamming distance when strings are of equal length", function() {
+		it("should work on strings of equal length", function() {
 
 			assert.equal(dist("1234567", "7654321"), 6);
 			assert.equal(dist("11110000", "10101010"), 4);
+
+			assert.equal(dist("1010101010101010", "0101010101010101"), 2)
 		});
 
 		it("should return 2 for cyclic rotated strings", function() {
