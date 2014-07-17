@@ -29,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/djechlin/levenshtein-transformation/issues"
   },
-  "homepage": "https://github.com/djechlin/levenshtein-transformation"
+  "homepage": "https://github.com/djechlin/levenshtein-transformation",
+  "dependencies": {
+    "lodash": "^2.4.1"
+  }
 }

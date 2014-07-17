@@ -1,6 +1,6 @@
 "use strict";
 
-module.exports = function Levenshtein(a, b) {
+var Levenshtein = module.exports = function Levenshtein(a, b) {
 
 	if(typeof a !== 'string' || typeof b !== 'string') {
 		throw new Error("Invalid arguments; please supply strings");
@@ -15,7 +15,7 @@ Levenshtein.prototype.distance = function() {
 
 	// matrix has an extra row/column for the empty string
 	// so highest indices are a.length and b.length
-	return this.matrix[a.length][b.length];
+	return this.matrix[this.a.length][this.b.length].distance;
 
 };
 
@@ -23,7 +23,7 @@ Levenshtein.prototype.transform = function() {
 	throw new Error("not yet implemented");
 };
 
-Levenshtein.computeMatrix = function() {
+Levenshtein.prototype.computeMatrix = function() {
 
 	if(this.matrix) {
 		return this.matrix;
@@ -61,9 +61,9 @@ Levenshtein.computeMatrix = function() {
 	for(i = 1; i < a.length + 1; i++) {
 		for(j = 1; j < b.length + 1; j++) {
 
-			var deleteDistance = this.matrix[i-1][j] + 1;
-			var insertDistance = this.matrix[i][j-1] + 1;
-			var substituteDistance = this.matrix[i-1][j-1] + (a[i-1] == b[i-1]);
+			var deleteDistance = this.matrix[i-1][j].distance + 1;
+			var insertDistance = this.matrix[i][j-1].distance + 1;
+			var substituteDistance = this.matrix[i-1][j-1].distance + (a[i-1] != b[j-1]);
 
 			if(deleteDistance <= insertDistance && deleteDistance <= substituteDistance) {
 				this.matrix[i][j] = {
@@ -71,7 +71,7 @@ Levenshtein.computeMatrix = function() {
 					distance: deleteDistance
 				};
 			}
-			else if(insertDistance <= susbtituteDistance) {
+			else if(insertDistance <= substituteDistance) {
 				this.matrix[i][j] = {
 					operation: "insert",
 					distance: insertDistance
