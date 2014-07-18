@@ -8,6 +8,10 @@ var dist = function(a,b) {
 	return new Levenshtein(a, b).distance();
 };
 
+var transform = function(a,b) {
+	return new Levenshtein(a,b).transform();
+}
+
 describe("Levenshtein", function() {
 	describe("#distance", function() {
 		it("should return 0 when the strings are both empty", function() {
@@ -39,6 +43,7 @@ describe("Levenshtein", function() {
 
 		it("should return 2 for cyclic rotated strings", function() {
 			assert.equal(dist("abcdefg", "gabcdef"), 2);
+			console.log(transform("abcdefg", "gabcdef"));
 		});
 
 		it("should return 3 for kitty and sitting", function() {
@@ -46,4 +51,17 @@ describe("Levenshtein", function() {
 			assert.equal(dist("sitting", "kitten"), 3);
 		});
 	});
+
+	describe("#transform", function() {
+
+		it("should transform sitting into kitten", function() {
+			//console.log(transform("sitting", "kitten"));
+		});
+
+		it("Should try a subject", function() {
+			assert.equal(dist("s>Dan, your order for $3.30 has shipped.", "Cris, your order for $44.33 has shipped."), 8);
+			console.log(transform("s>Dan, your order for $3.30 has shipped.", "Cris, your order for $44.33 has shipped."));
+		});
+	});
+
 });

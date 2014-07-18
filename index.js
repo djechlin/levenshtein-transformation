@@ -20,7 +20,37 @@ Levenshtein.prototype.distance = function() {
 };
 
 Levenshtein.prototype.transform = function() {
-	throw new Error("not yet implemented");
+	this.computeMatrix();
+
+	// recursively backtrace through matrix
+	var i = this.a.length;
+	var j = this.b.length;
+
+	var operations = [];
+
+	while(i > 0 && j > 0) {
+		var operation = this.matrix[i][j].operation;
+		operations.unshift(operation);
+
+		switch(operation) {
+			case "delete":
+				i--;
+				break;
+			case "insert":
+				j--;
+				break;
+			case "substitute":
+			case "cancel":
+				i--;
+				j--;
+				break;
+		}
+	}
+
+	return operations;
+
+
+
 };
 
 Levenshtein.prototype.computeMatrix = function() {
@@ -61,9 +91,11 @@ Levenshtein.prototype.computeMatrix = function() {
 	for(i = 1; i < a.length + 1; i++) {
 		for(j = 1; j < b.length + 1; j++) {
 
+			var charactersCancel = (a[i-1] == b[j-1]);
+
 			var deleteDistance = this.matrix[i-1][j].distance + 1;
 			var insertDistance = this.matrix[i][j-1].distance + 1;
-			var substituteDistance = this.matrix[i-1][j-1].distance + (a[i-1] != b[j-1]);
+			var substituteDistance = this.matrix[i-1][j-1].distance + !charactersCancel;
 
 			if(deleteDistance <= insertDistance && deleteDistance <= substituteDistance) {
 				this.matrix[i][j] = {
@@ -79,7 +111,7 @@ Levenshtein.prototype.computeMatrix = function() {
 			}
 			else {
 				this.matrix[i][j] = {
-					operation: a[i-1] == b[i-1] ? "cancel" : "substitute",
+					operation: charactersCancel ? "cancel" : "substitute",
 					distance: substituteDistance
 				}
 			}
