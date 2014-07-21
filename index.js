@@ -116,7 +116,33 @@ Levenshtein.prototype.steps = function() {
 
 
 
+var  matchesWithWildcard = function(a, b, i, j) {
+
+	if(typeof b === 'string') {
+		return a[i] === b[j];
+	}
+
+	assert(b instanceof Array);
+
+	if(typeof b[j] === 'string') {
+		return a[i] === b[j];
+	}
+
+	assert(b[j] instanceof Array);
+
+	// optionals are NOT supported
+	assert(b[j][0] === '.');
+
+	// now return true because matched dot
+	return true;
+}
+
+
 Levenshtein.prototype.computeMatrix = function() {
+
+	// this method works when b is not a string but an array containing characters and wildcards
+	// it can NOT work when the wildcards or any characters are optional; that is an exponential
+	// algorithm that occurs in a different function
 
 	if(this.matrix) {
 		return this.matrix;
@@ -152,7 +178,7 @@ Levenshtein.prototype.computeMatrix = function() {
 
 			// Infinity represents illegal operations
 
-			var charactersCancel = (i-1 >= 0 && j-1 >= 0 && a[i-1] == b[j-1]);
+			var charactersCancel = matchesWithWildcard(a, b, i - 1, j -1);
 
 			var deleteDistance = i-1 >= 0 ? this.matrix[i-1][j].distance + 1 : Infinity;
 			var insertDistance = j-1 >= 0 ? this.matrix[i][j-1].distance + 1 : Infinity;

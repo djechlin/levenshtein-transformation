@@ -52,24 +52,39 @@ describe("Levenshtein", function() {
 		});
 	});
 
-	describe("#transform", function() {
+	// transform has no unit tests since it's only verified with how it's used i.e. the regex
 
-		it("should transform sitting into kitten", function() {
-			//console.log(transform("sitting", "kitten"));
-		});
+	describe("#matcher", function() {
 
-		it("Should try a subject", function() {
-			assert.equal(dist("s>Dan, your order for $3.30 has shipped.", "Cris, your order for $44.33 has shipped."), 8);
-		//	console.log(transform("s>Dan, your order for $3.30 has shipped.", "Cris, your order for $44.33 has shipped."));
+		// this is important since this format is brittle and used elsewhere, including in computeMatrix
+		it("should produce an array of strings -or- arrays of one string of special characters", function() {
+
+			var m = new Levenshtein("sitting", "kitten").matcher();
+
+			assert(m instanceof Array);
+
+			m.forEach(function(item) {
+				assert(typeof item === 'string' || (item instanceof Array && (item[0] === '.' || item[0] === '.?')));
+			});
 		});
 	});
 
 	describe("#regex", function() {
 
 		it("should make regexes", function() {
-			console.log(new Levenshtein("sitting", "kitten").regex(true));
 
-			console.log(new Levenshtein("kitten", "sitting").regex(true));
+			var strings = [
+				["alpha", "omega"],
+				["john", "smith"],
+				["!!!...aaa???)))", "!!!!....aaaa????))))"],
+				["unrollmeinc", "Unroll.me, Inc."],
+				["sitting", "kitten"],
+				["abcdefg", "gabcdef"]
+			];
+
+			strings.forEach(function (arr) {
+				new Levenshtein(arr[0], arr[1]).regex(true);
+			});
 		})
 	});
 });
