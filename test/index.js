@@ -14,6 +14,7 @@ var transform = function(a,b) {
 
 describe("Levenshtein", function() {
 	describe("#distance", function() {
+
 		it("should return 0 when the strings are both empty", function() {
 			assert.equal(dist("", ""), 0);
 		});
@@ -63,4 +64,12 @@ describe("Levenshtein", function() {
 		});
 	});
 
+	describe("#regex", function() {
+
+		it("should make regexes", function() {
+			console.log(new Levenshtein("sitting", "kitten").regex(true));
+
+			console.log(new Levenshtein("kitten", "sitting").regex(true));
+		})
+	});
 });

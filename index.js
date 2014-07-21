@@ -1,5 +1,8 @@
 "use strict";
 
+var regexpQuote = require('regexp-quote');
+var assert = require('assert');
+
 var Levenshtein = module.exports = function Levenshtein(a, b) {
 
 	if(typeof a !== 'string' || typeof b !== 'string') {
@@ -48,10 +51,70 @@ Levenshtein.prototype.transform = function() {
 	}
 
 	return operations;
-
-
-
 };
+
+Levenshtein.prototype.matcher = function() {
+	var operations = this.transform();
+
+	var a = this.a;
+	var b = this.b;
+
+	var index = 0;
+
+	return operations.map(function(operation) {
+		switch(operation) {
+			case "cancel":
+				return a[index++];
+			case "substitute":
+				index++;
+				return ["."];
+			case "insert":
+				return [".?"];
+			case "delete":
+				index++;
+				return [".?"];
+		}
+	});
+}
+
+Levenshtein.prototype.regex = function(test) {
+	var matcher = this.matcher();
+
+	var regex = "^";
+
+	matcher.forEach(function(instruction) {
+
+		assert(typeof instruction === 'string' || typeof instruction[0] === 'string');
+
+		if(typeof instruction === 'string') {
+			regex += regexpQuote(instruction);
+		}
+		else {
+			regex += instruction[0];
+		}
+	});
+
+	regex += "$";
+
+	var result = new RegExp(regex);
+
+	if(test) {
+		assert(result.test(this.a));
+		assert(result.test(this.b));
+	}
+
+	return result;
+};
+
+Levenshtein.prototype.steps = function() {
+
+	var operations = this.transform();
+
+	var a = this.a;
+	var b = this.b;
+};
+
+
 
 Levenshtein.prototype.computeMatrix = function() {
 
