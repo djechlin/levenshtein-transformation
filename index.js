@@ -28,7 +28,7 @@ Levenshtein.prototype.transform = function() {
 
 	var operations = [];
 
-	while(i > 0 && j > 0) {
+	while(i > 0 || j > 0) {
 		var operation = this.matrix[i][j].operation;
 		operations.unshift(operation);
 
@@ -69,33 +69,31 @@ Levenshtein.prototype.computeMatrix = function() {
 		this.matrix[i] = [];
 	}
 
-	// fill first row with 1..n
-	for(i = 0; i < a.length + 1; i++) {
-		this.matrix[i][0] =
-		{
-			operation: i == 0 ? null : "delete",
-			distance: i
-		};
-	}
-
-	for(var j = 0; j < b.length + 1; j++) {
-		this.matrix[0][j] =
-		{
-			operation: j == 0 ? null : "insert",
-			distance: j
-		}
-	}
-
 	// now walk the whole array and apply the comparison
 
-	for(i = 1; i < a.length + 1; i++) {
-		for(j = 1; j < b.length + 1; j++) {
+	for(i = 0; i < a.length + 1; i++) {
+		for(var j = 0; j < b.length + 1; j++) {
 
-			var charactersCancel = (a[i-1] == b[j-1]);
+			// only necessary base case if we use Infinity, which simplifies the work
+			// needed to generalize to matching against regex
+			if(i === 0 && j === 0) {
+				this.matrix[i][j] = {
+					operation: null,
+					distance: 0
+				};
+				continue;
+			}
 
-			var deleteDistance = this.matrix[i-1][j].distance + 1;
-			var insertDistance = this.matrix[i][j-1].distance + 1;
-			var substituteDistance = this.matrix[i-1][j-1].distance + !charactersCancel;
+			// remember strings are indexed -1 less than matrix, since matrix needs
+			// to consider the empty string, whereas a[0] is of course a 1-length string
+
+			// Infinity represents illegal operations
+
+			var charactersCancel = (i-1 >= 0 && j-1 >= 0 && a[i-1] == b[j-1]);
+
+			var deleteDistance = i-1 >= 0 ? this.matrix[i-1][j].distance + 1 : Infinity;
+			var insertDistance = j-1 >= 0 ? this.matrix[i][j-1].distance + 1 : Infinity;
+			var substituteDistance = i-1 >= 0 && j-1 >= 0 ? this.matrix[i-1][j-1].distance + !charactersCancel : Infinity;
 
 			if(deleteDistance <= insertDistance && deleteDistance <= substituteDistance) {
 				this.matrix[i][j] = {
