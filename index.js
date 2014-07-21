@@ -116,3 +116,22 @@ Levenshtein.prototype.computeMatrix = function() {
 		}
 	}
 };
+
+// everything can be done statically
+
+for(var name in Levenshtein.prototype) {
+
+	if (!Levenshtein.prototype.hasOwnProperty(name)) {
+		continue;
+	}
+
+	var func = Levenshtein.prototype[name];
+
+	if (typeof func !== 'function') {
+		continue;
+	}
+
+	Levenshtein[func] = function(a,b) {
+		return new Levenshtein(a,b)[func]();
+	}
+}
