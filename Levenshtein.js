@@ -4,11 +4,6 @@ var regexpQuote = require('regexp-quote');
 var assert = require('assert');
 
 var Levenshtein = module.exports = function Levenshtein(a, b) {
-
-	if(typeof a !== 'string' || typeof b !== 'string') {
-		throw new Error("Invalid arguments; please supply strings");
-	}
-
 	this.a = a;
 	this.b = b;
 };
@@ -23,19 +18,23 @@ Levenshtein.prototype.distance = function() {
 };
 
 Levenshtein.prototype.transform = function() {
+
+	if(this.operations) {
+		return this.operations;
+	}
 	this.computeMatrix();
 
 	// recursively backtrace through matrix
 	var i = this.a.length;
 	var j = this.b.length;
 
-	var operations = [];
+	this.operations = [];
 
 	while(i > 0 || j > 0) {
-		var operation = this.matrix[i][j].operation;
-		operations.unshift(operation);
+		var node = this.matrix[i][j];
+		this.operations.unshift(node);
 
-		switch(operation) {
+		switch(node.operation) {
 			case "delete":
 				i--;
 				break;
@@ -44,16 +43,22 @@ Levenshtein.prototype.transform = function() {
 				break;
 			case "substitute":
 			case "cancel":
+			case "wildcard":
+			case "optional":
 				i--;
 				j--;
 				break;
 		}
 	}
 
-	return operations;
+	return this.operations;
 };
 
 Levenshtein.prototype.matcher = function() {
+
+	if(this.matcherSet) {
+		return this.matcherSet;
+	}
 	var operations = this.transform();
 
 	var a = this.a;
@@ -61,18 +66,19 @@ Levenshtein.prototype.matcher = function() {
 
 	var index = 0;
 
-	return operations.map(function(operation) {
-		switch(operation) {
+	return this.matcherSet = operations.map(function(node) {
+		switch(node.operation) {
 			case "cancel":
-				return a[index++];
 			case "substitute":
+			case "wildcard":
+			case "optional":
 				index++;
-				return ["."];
+				return node.resultCharacter;
 			case "insert":
-				return [".?"];
+				return ["?"];
 			case "delete":
 				index++;
-				return [".?"];
+				return ["?"];
 		}
 	});
 }
@@ -90,7 +96,14 @@ Levenshtein.prototype.regex = function(test) {
 			regex += regexpQuote(instruction);
 		}
 		else {
-			regex += instruction[0];
+			switch(instruction[0]) {
+				case '.':
+					regex += '.';
+					break;
+				case '?':
+					regex += '.?';
+					break;
+			}
 		}
 	});
 
@@ -116,25 +129,40 @@ Levenshtein.prototype.steps = function() {
 
 
 
-var  matchesWithWildcard = function(a, b, i, j) {
+var  substitutes = function(a, b, i, j) {
 
-	if(typeof b === 'string') {
-		return a[i] === b[j];
+	if(i < 0 || j < 0) {
+		return false;
 	}
 
-	assert(b instanceof Array);
-
-	if(typeof b[j] === 'string') {
-		return a[i] === b[j];
+	if(typeof b === 'string' || typeof b[j] === 'string') {
+		return {
+			operation: a[i] === b[j] ? 'cancel' : 'substitute',
+			distance: a[i] === b[j] ? 0 : 1,
+			resultCharacter: a[i] === b[j] ? a[i] : ['.']
+		};
 	}
 
 	assert(b[j] instanceof Array);
 
-	// optionals are NOT supported
-	assert(b[j][0] === '.');
+	var metacharacter = b[j][0];
 
-	// now return true because matched dot
-	return true;
+	assert(metacharacter === '.' || metacharacter === '?');
+
+	switch(metacharacter) {
+		case '.':
+			return {
+				operation: 'wildcard',
+				distance: 0,
+				resultCharacter: ['.']
+			};
+		case '?':
+			return {
+				operation: 'optional',
+				distance: 1,
+				resultCharacter: ['?']
+			};
+	}
 }
 
 
@@ -178,11 +206,11 @@ Levenshtein.prototype.computeMatrix = function() {
 
 			// Infinity represents illegal operations
 
-			var charactersCancel = matchesWithWildcard(a, b, i - 1, j -1);
+			var  substitution = substitutes(a, b, i - 1, j - 1);
 
 			var deleteDistance = i-1 >= 0 ? this.matrix[i-1][j].distance + 1 : Infinity;
 			var insertDistance = j-1 >= 0 ? this.matrix[i][j-1].distance + 1 : Infinity;
-			var substituteDistance = i-1 >= 0 && j-1 >= 0 ? this.matrix[i-1][j-1].distance + !charactersCancel : Infinity;
+			var substituteDistance = i-1 >= 0 && j-1 >= 0 ? this.matrix[i-1][j-1].distance + substitution.distance : Infinity;
 
 			if(deleteDistance <= insertDistance && deleteDistance <= substituteDistance) {
 				this.matrix[i][j] = {
@@ -198,8 +226,9 @@ Levenshtein.prototype.computeMatrix = function() {
 			}
 			else {
 				this.matrix[i][j] = {
-					operation: charactersCancel ? "cancel" : "substitute",
-					distance: substituteDistance
+					operation: substitution.operation,
+					distance: substituteDistance,
+					resultCharacter: substitution.resultCharacter
 				}
 			}
 		}

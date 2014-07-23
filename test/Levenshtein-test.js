@@ -64,7 +64,7 @@ describe("Levenshtein", function() {
 			assert(m instanceof Array);
 
 			m.forEach(function(item) {
-				assert(typeof item === 'string' || (item instanceof Array && (item[0] === '.' || item[0] === '.?')));
+				assert(typeof item === 'string' || (item instanceof Array && (item[0] === '.' || item[0] === '?')));
 			});
 		});
 	});

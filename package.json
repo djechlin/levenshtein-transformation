@@ -2,7 +2,7 @@
   "name": "levenshtein-transformation",
   "version": "0.0.0",
   "description": "Transform one string into another using the operations in the Levenshtein edit distance computation.",
-  "main": "index.js",
+  "main": "Levenshtein.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
