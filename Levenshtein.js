@@ -239,24 +239,26 @@ Levenshtein.prototype.computeMatrix = function() {
 			var insertDistance = j-1 >= 0 ? this.matrix[i][j-1].distance + 1 : Infinity;
 			var substituteDistance = i-1 >= 0 && j-1 >= 0 ? this.matrix[i-1][j-1].distance + substitution.distance : Infinity;
 
-			if(deleteDistance <= insertDistance && deleteDistance <= substituteDistance) {
-				this.matrix[i][j] = {
-					operation: "delete",
-					distance: deleteDistance
-				};
-			}
-			else if(insertDistance <= substituteDistance) {
-				this.matrix[i][j] = {
-					operation: "insert",
-					distance: insertDistance
-				}
-			}
-			else {
+			if(substituteDistance <= insertDistance && substituteDistance <= deleteDistance) {
 				this.matrix[i][j] = {
 					operation: substitution.operation,
 					distance: substituteDistance,
 					resultCharacter: substitution.resultCharacter
 				}
+			}
+
+			else if(insertDistance <= deleteDistance) {
+				this.matrix[i][j] = {
+					operation: "insert",
+					distance: insertDistance
+				}
+			}
+
+			else {
+				this.matrix[i][j] = {
+					operation: "delete",
+					distance: deleteDistance
+				};
 			}
 		}
 	}
