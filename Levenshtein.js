@@ -83,29 +83,56 @@ Levenshtein.prototype.matcher = function() {
 	});
 }
 
+function printOptionalCharacters(lower, upper) {
+
+	if(lower === 1 && upper === 1) {
+		return ".";
+	}
+	else if(lower === upper) {
+		return ".{" + lower + "}";
+	}
+	else if(lower === 0 && upper === 1) {
+		return ".?";
+	}
+	else {
+		return ".{" + lower + "," + upper + "}";
+	}
+}
+
 Levenshtein.prototype.regex = function(test) {
 	var matcher = this.matcher();
 
 	var regex = "^";
 
+	var optionalCacheLower = 0;
+	var optionalCacheUpper = 0;
+	var inOptional = false;
+
 	matcher.forEach(function(instruction) {
 
 		assert(typeof instruction === 'string' || typeof instruction[0] === 'string');
 
-		if(typeof instruction === 'string') {
+		if (typeof instruction === 'string') {
+			if (inOptional) {
+				regex += printOptionalCharacters(optionalCacheLower, optionalCacheUpper);
+				inOptional = false;
+				optionalCacheLower = optionalCacheUpper = 0;
+			}
 			regex += regexpQuote(instruction);
 		}
 		else {
-			switch(instruction[0]) {
-				case '.':
-					regex += '.';
-					break;
-				case '?':
-					regex += '.?';
-					break;
+			inOptional = true;
+			optionalCacheUpper++;
+			if (instruction[0] === '.') {
+				optionalCacheLower++;
 			}
+			// else is ?, do not increment lower
 		}
 	});
+
+	if(inOptional) {
+		regex += printOptionalCharacters(optionalCacheLower, optionalCacheUpper);
+	}
 
 	regex += "$";
 
