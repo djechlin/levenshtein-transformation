@@ -186,7 +186,7 @@ var  substitutes = function(a, b, i, j) {
 		case '?':
 			return {
 				operation: 'optional',
-				distance: 1,
+				distance: 0,
 				resultCharacter: ['?']
 			};
 	}
@@ -236,7 +236,7 @@ Levenshtein.prototype.computeMatrix = function() {
 			var  substitution = substitutes(a, b, i - 1, j - 1);
 
 			var deleteDistance = i-1 >= 0 ? this.matrix[i-1][j].distance + 1 : Infinity;
-			var insertDistance = j-1 >= 0 ? this.matrix[i][j-1].distance + 1 : Infinity;
+			var insertDistance = j-1 >= 0 ? this.matrix[i][j-1].distance + (b[j-1] instanceof Array && b[j-1][0] === '?' ? 0 : 1) : Infinity;
 			var substituteDistance = i-1 >= 0 && j-1 >= 0 ? this.matrix[i-1][j-1].distance + substitution.distance : Infinity;
 
 			if(substituteDistance <= insertDistance && substituteDistance <= deleteDistance) {
